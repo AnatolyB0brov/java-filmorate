@@ -25,6 +25,7 @@ public class UserController {
 
     @PostMapping
     public User createUser(@Valid @RequestBody User user) {
+        validate(user);
         user.setId(++currentId);
         users.put(user.getId(), user);
         log.debug("Создан пользователь с названием " + user.getName());
@@ -38,8 +39,15 @@ public class UserController {
             log.debug("Не найден пользователь с id = " + id);
             throw new ValidationException("Пользователь не найден");
         }
+        validate(user);
         users.put(id, user);
         log.debug("Изменен пользователь с названием " + user.getName());
         return user;
+    }
+
+    private void validate(User user) {
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
     }
 }
