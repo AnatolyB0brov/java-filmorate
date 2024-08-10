@@ -8,7 +8,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -20,6 +19,7 @@ class UserControllerTest {
     static ValidatorFactory validatorFactory;
     static Validator validator;
     User user;
+
     @BeforeAll
     static void createValidator() {
         validatorFactory = Validation.buildDefaultValidatorFactory();

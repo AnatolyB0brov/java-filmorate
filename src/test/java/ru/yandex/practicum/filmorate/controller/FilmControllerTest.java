@@ -19,6 +19,7 @@ class FilmControllerTest {
     static ValidatorFactory validatorFactory;
     static Validator validator;
     Film film;
+
     @BeforeAll
     static void createValidator() {
         validatorFactory = Validation.buildDefaultValidatorFactory();
