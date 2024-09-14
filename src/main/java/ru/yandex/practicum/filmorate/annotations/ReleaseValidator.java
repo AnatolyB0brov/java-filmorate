@@ -11,7 +11,6 @@ public class ReleaseValidator implements ConstraintValidator<Release, LocalDate>
     @Override
     public void initialize(Release constraintAnnotation) {
         this.min = LocalDate.parse(constraintAnnotation.value());
-        int i = 0;
     }
 
     @Override

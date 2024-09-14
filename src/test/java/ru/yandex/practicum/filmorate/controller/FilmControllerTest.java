@@ -54,14 +54,6 @@ class FilmControllerTest {
     }
 
     @Test
-    void releaseNotInFuture() {
-        film.setReleaseDate(LocalDate.of(2026, 10, 5));
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
-        assertEquals(1, violations.size());
-        assertEquals("Релиз не может быть в будущем", violations.iterator().next().getMessage());
-    }
-
-    @Test
     void releaseNotBefore28_12_1895() {
         film.setReleaseDate(LocalDate.of(1895, 12, 27));
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
