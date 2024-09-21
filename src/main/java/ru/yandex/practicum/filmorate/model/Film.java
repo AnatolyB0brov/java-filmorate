@@ -7,11 +7,12 @@ import lombok.Data;
 import ru.yandex.practicum.filmorate.annotations.Release;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 
 @Data
 public class Film {
-    private int id;
+    private long id;
     @NotBlank(message = "Название не может быть пустым")
     private String name;
     @Size(max = 200, message = "Описание не должно быть более 200 символов")
@@ -22,4 +23,5 @@ public class Film {
 
     @Positive(message = "Продолжительность должна быть больше 0")
     private Integer duration;
+    private Set<Long> likes;
 }
