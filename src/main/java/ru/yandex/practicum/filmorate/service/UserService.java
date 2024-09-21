@@ -70,14 +70,8 @@ public class UserService {
         Set<Long> userFriendsIds = user.getFriends();
         if (!CollectionUtils.isEmpty(userFriendsIds)) {
             for (long userFriendId : userFriendsIds) {
-                try {
-                    friends.add(getUserById(userFriendId));
-                } catch (UserNotFoundException e) {
-                    log.debug("Пользователь с id = {} не найден", userFriendId);
-                }
+                friends.add(getUserById(userFriendId));
             }
-        } else {
-            throw new UserNotFoundException("Друзья не найдены");
         }
         return friends;
     }
