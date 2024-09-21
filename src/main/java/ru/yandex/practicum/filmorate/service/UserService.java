@@ -12,6 +12,7 @@ import java.util.*;
 @Slf4j
 @Service
 public class UserService {
+
     private final UserStorage userStorage;
 
     public UserService(UserStorage userStorage) {
@@ -23,11 +24,9 @@ public class UserService {
         User secondUser = getUserById(secondUserId);
         Set<Long> firstUsersFriendsId = firstUser.getFriends();
         Set<Long> secondUsersFriendsId = secondUser.getFriends();
-        if (!firstUsersFriendsId.contains(secondUser.getId())) {
-            firstUsersFriendsId.add(secondUser.getId());
-            secondUsersFriendsId.add(firstUser.getId());
-            log.info("Добавление друга {} пользователю {}", secondUserId, firstUserId);
-        }
+        firstUsersFriendsId.add(secondUser.getId());
+        secondUsersFriendsId.add(firstUser.getId());
+        log.info("Добавление друга {} пользователю {}", secondUserId, firstUserId);
     }
 
     public void deleteFriend(long firstUserId, long secondUserId) {
