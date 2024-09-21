@@ -76,6 +76,8 @@ public class UserService {
                     log.debug("Пользователь с id = {} не найден", userFriendId);
                 }
             }
+        } else {
+            throw new UserNotFoundException("Друзья не найдены");
         }
         return friends;
     }
