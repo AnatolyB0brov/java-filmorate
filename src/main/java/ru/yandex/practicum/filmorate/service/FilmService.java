@@ -50,6 +50,7 @@ public class FilmService {
     public List<Film> getMostPopularFilms(int limit) {
         List<Film> films = filmStorage.getFilms();
         films.sort(comparator);
+        films = films.reversed();
         if (films.size() > limit) {
             return films.stream().limit(limit).toList();
         }
