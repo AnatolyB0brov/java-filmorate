@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,5 +48,12 @@ public class ErrorHandler {
     public ErrorResponse internalServerError(final Exception e) {
         log.error(e.getMessage());
         return new ErrorResponse("Произошла внутренняя ошибка сервера");
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse validateException(final ValidationException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse(e.getMessage());
     }
 }
