@@ -11,29 +11,25 @@ import java.util.List;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-
-    private final FilmStorage filmStorage;
-
     private final FilmService filmService;
 
-    public FilmController(FilmStorage filmStorage, FilmService filmService) {
-        this.filmStorage = filmStorage;
+    public FilmController(FilmService filmService) {
         this.filmService = filmService;
     }
 
     @GetMapping
     public List<Film> getFilms() {
-        return filmStorage.getFilms();
+        return filmService.getFilms();
     }
 
     @PostMapping
     public Film createFilm(@Valid @RequestBody Film film) {
-        return filmStorage.createFilm(film);
+        return filmService.createFilm(film);
     }
 
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
-        return filmStorage.updateFilm(film);
+        return filmService.updateFilm(film);
     }
 
     @PutMapping("/{id}/like/{userId}")

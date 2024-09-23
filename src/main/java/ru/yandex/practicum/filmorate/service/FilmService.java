@@ -6,6 +6,8 @@ import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.utils.ServicesUtils;
 
 import java.util.Comparator;
 import java.util.List;
@@ -17,16 +19,30 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
 
-    private final UserService userService;
+    private final UserStorage userStorage;
 
-    public FilmService(FilmStorage filmStorage, UserService userService) {
+    private final Comparator<Film> comparator = Comparator.comparing(obj -> obj.getLikes().size());
+
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
         this.filmStorage = filmStorage;
-        this.userService = userService;
+        this.userStorage = userStorage;
+    }
+
+    public List<Film> getFilms() {
+        return filmStorage.getFilms();
+    }
+
+    public Film createFilm(Film film) {
+        return filmStorage.createFilm(film);
+    }
+
+    public Film updateFilm(Film film) {
+        return filmStorage.updateFilm(film);
     }
 
     public void setLike(long filmId, long userId) {
         Film film = getFilmById(filmId);
-        User user = userService.getUserById(userId);
+        User user = ServicesUtils.getUserByIdOrElseThrow(userStorage, userId);
         Set<Long> likes = film.getLikes();
         if (!likes.contains(user.getId())) {
             likes.add(user.getId());
@@ -38,7 +54,7 @@ public class FilmService {
 
     public void deleteLike(long filmId, long userId) {
         Film film = getFilmById(filmId);
-        User user = userService.getUserById(userId);
+        User user = ServicesUtils.getUserByIdOrElseThrow(userStorage, userId);
         Set<Long> likes = film.getLikes();
         if (likes.remove(user.getId())) {
             film.setLikes(likes);
@@ -61,7 +77,4 @@ public class FilmService {
         return filmStorage.getFilmById(filmId)
                 .orElseThrow(() -> new FilmNotFoundException("Фильм с id = " + filmId + " не найден"));
     }
-
-    private final Comparator<Film> comparator = Comparator.comparing(obj -> obj.getLikes().size());
-
 }

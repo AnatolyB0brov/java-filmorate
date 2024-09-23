@@ -3,11 +3,13 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.utils.ServicesUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -17,6 +19,18 @@ public class UserService {
 
     public UserService(UserStorage userStorage) {
         this.userStorage = userStorage;
+    }
+
+    public List<User> getUsers() {
+        return userStorage.getUsers();
+    }
+
+    public User createUser(User user) {
+        return userStorage.createUser(user);
+    }
+
+    public User updateUser(User user) {
+        return userStorage.updateUser(user);
     }
 
     public void addFriend(long firstUserId, long secondUserId) {
@@ -42,26 +56,14 @@ public class UserService {
     }
 
     public List<User> getCommonFriends(long firstUserId, long secondUserId) {
-        log.info("Поиск общих друзей пользователя {} и пользователя {}", secondUserId, firstUserId);
-        User firstUser = getUserById(firstUserId);
-        User secondUser = getUserById(secondUserId);
-        List<User> commonFriends = new ArrayList<>();
-        for (Long firstUserFriendId : firstUser.getFriends()) {
-            for (Long secondUserFriendId : secondUser.getFriends())
-                if (Objects.equals(firstUserFriendId, secondUserFriendId)) {
-                    try {
-                        commonFriends.add(getUserById(firstUserFriendId));
-                    } catch (UserNotFoundException e) {
-                        log.debug("Пользователь с id = {} не найден", firstUserFriendId);
-                    }
-                }
-        }
-        return commonFriends;
+        List<User> firstUserCommonFriends = getUserFriends(firstUserId);
+        List<User> secondUserCommonFriends = getUserFriends(secondUserId);
+        firstUserCommonFriends.retainAll(secondUserCommonFriends);
+        return firstUserCommonFriends;
     }
 
     public User getUserById(long userId) {
-        return userStorage.getUserById(userId)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + userId + " не найден"));
+        return ServicesUtils.getUserByIdOrElseThrow(userStorage, userId);
     }
 
     public List<User> getUserFriends(long userId) {

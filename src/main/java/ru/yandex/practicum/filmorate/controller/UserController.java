@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
 
@@ -12,28 +11,25 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
 
-    private final UserStorage userStorage;
-
     private final UserService userService;
 
-    public UserController(UserStorage userStorage, UserService userService) {
-        this.userStorage = userStorage;
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
     @GetMapping
     public List<User> getUsers() {
-        return userStorage.getUsers();
+        return userService.getUsers();
     }
 
     @PostMapping
     public User createUser(@Valid @RequestBody User user) {
-        return userStorage.createUser(user);
+        return userService.createUser(user);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        return userStorage.updateUser(user);
+        return userService.updateUser(user);
     }
 
     @GetMapping("/{id}")
