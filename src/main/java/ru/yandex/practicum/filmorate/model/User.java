@@ -7,10 +7,12 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class User {
-    private int id;
+    private long id;
     private String name;
     @NotBlank(message = "Логин не может быть пустым")
     @Pattern(regexp = "^\\S*$", message = "Логин не может содержать пробелы")
@@ -20,4 +22,5 @@ public class User {
     private String email;
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
+    private Set<Long> friends = new HashSet<>();
 }
