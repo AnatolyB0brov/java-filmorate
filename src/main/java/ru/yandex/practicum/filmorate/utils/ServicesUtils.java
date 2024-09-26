@@ -1,12 +1,18 @@
 package ru.yandex.practicum.filmorate.utils;
 
-import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class ServicesUtils {
-    public static User getUserByIdOrElseThrow(UserStorage userStorage, long userId) throws UserNotFoundException {
-        return userStorage.getUserById(userId)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + userId + " не найден"));
+    public static User getUserFromResultSet(ResultSet resultSet) throws SQLException {
+        return User.builder()
+                .id(resultSet.getLong("id"))
+                .name(resultSet.getString("name"))
+                .login(resultSet.getString("login"))
+                .email(resultSet.getString("email"))
+                .birthday(resultSet.getDate("birthday").toLocalDate())
+                .build();
     }
 }
