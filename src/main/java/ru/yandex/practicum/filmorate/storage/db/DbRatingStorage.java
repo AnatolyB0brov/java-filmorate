@@ -15,7 +15,7 @@ public class DbRatingStorage implements RatingStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final String SELECT_RATINGS = "SELECT * FROM ratings ";
+    private static final String SELECT_RATINGS = "SELECT * FROM ratings ";
 
     public DbRatingStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;

@@ -2,15 +2,12 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -44,13 +41,13 @@ public class UserService {
     public void addFriend(long firstUserId, long secondUserId) {
         User firstUser = getUserById(firstUserId);//Проверяем наличие пользователя
         User secondUser = getUserById(secondUserId);//Проверяем наличие пользователя
-        friendStorage.addFriend(firstUserId,  secondUserId);
+        friendStorage.addFriend(firstUserId, secondUserId);
     }
 
     public void deleteFriend(long firstUserId, long secondUserId) {
         User firstUser = getUserById(firstUserId);
         User secondUser = getUserById(secondUserId);
-        friendStorage.deleteFriend(firstUserId,  secondUserId);
+        friendStorage.deleteFriend(firstUserId, secondUserId);
         log.info("Удаление друга {} пользователю {}", secondUserId, firstUserId);
     }
 
@@ -70,6 +67,7 @@ public class UserService {
         User user = getUserById(userId);//Проверяем наличие пользователя
         return friendStorage.getUserFriends(userId);
     }
+
     private void ifEmptyNameSetLogin(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());

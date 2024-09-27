@@ -15,7 +15,7 @@ public class DbGenreStorage implements GenreStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final String SELECT_GENRES = "SELECT * FROM genres ";
+    private static final String SELECT_GENRES = "SELECT * FROM genres ";
 
     public DbGenreStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -32,5 +32,15 @@ public class DbGenreStorage implements GenreStorage {
         String sql = "WHERE id = ?";
         return jdbcTemplate.query(SELECT_GENRES + sql, (rs, rowNum) -> new Genre(rs.getInt("id"),
                 rs.getString("name")), genreId).stream().findFirst();
+    }
+
+    @Override
+    public List<Genre> getGenresByFilmId(long filmId) {
+        String sql = "SELECT DISTINCT genre_id, genres.name AS genre_name " +
+                "FROM film_genres AS fg " +
+                "INNER JOIN genres ON genres.id = fg.genre_id " +
+                "WHERE film_id = ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new Genre(rs.getInt("genre_id"),
+                rs.getString("genre_name")), filmId).stream().toList();
     }
 }

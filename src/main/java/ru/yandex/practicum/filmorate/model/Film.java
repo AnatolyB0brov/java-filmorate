@@ -10,9 +10,7 @@ import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.annotations.Release;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 
 @Data
@@ -30,6 +28,6 @@ public class Film {
     @Positive(message = "Продолжительность должна быть больше 0")
     private Integer duration;
     private Set<Long> likes = new HashSet<>();
-    private Rating rating;
-    private LinkedHashSet<Genre> genres = new LinkedHashSet<>();
+    private Rating mpa;
+    private List<Genre> genres = new ArrayList<>();
 }

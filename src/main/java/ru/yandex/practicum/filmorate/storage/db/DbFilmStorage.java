@@ -17,7 +17,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Slf4j
 @Component
@@ -25,7 +24,8 @@ public class DbFilmStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final String SELECT_FILMS = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, r.id, r.name " +
+    private static final String SELECT_FILMS = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, " +
+            "f.rating_id, r.name AS rating_name " +
             "FROM films AS f " +
             "INNER JOIN ratings AS r ON f.rating_id = r.id ";
 
@@ -52,7 +52,7 @@ public class DbFilmStorage implements FilmStorage {
                     ps.setString(2, film.getDescription());
                     ps.setDate(3, java.sql.Date.valueOf(film.getReleaseDate()));
                     ps.setInt(4, film.getDuration());
-                    ps.setObject(5, film.getRating() != null ? film.getRating().getId() : null);
+                    ps.setObject(5, film.getMpa() != null ? film.getMpa().getId() : null);
                     return ps;
                 },
                 keyHolder);
@@ -69,8 +69,8 @@ public class DbFilmStorage implements FilmStorage {
                 "WHERE id = ?";
 
         Long ratingId = null;
-        if (film.getRating() != null) {
-            ratingId = film.getRating().getId();
+        if (film.getMpa() != null) {
+            ratingId = film.getMpa().getId();
         }
         jdbcTemplate.update(
                 sql,
@@ -108,13 +108,13 @@ public class DbFilmStorage implements FilmStorage {
                 .description(resultSet.getString("description"))
                 .releaseDate(resultSet.getDate("releaseDate").toLocalDate())
                 .duration(resultSet.getInt("duration"))
-                .rating(new Rating(resultSet.getLong("rating_id"),
+                .mpa(new Rating(resultSet.getLong("rating_id"),
                         resultSet.getString("rating_name")))
                 .build();
     }
 
 
-    private void updateFilmGenres(Set<Genre> genres, long filmId) {
+    private void updateFilmGenres(List<Genre> genres, long filmId) {
         jdbcTemplate.update("DELETE FROM film_genres WHERE film_id =?", filmId);
         if (!genres.isEmpty()) {
             String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";

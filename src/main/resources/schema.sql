@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS friends
 
 CREATE TABLE IF NOT EXISTS ratings
 (
-    id          LONG AUTO_INCREMENT,
+    id          LONG AUTO_INCREMENT PRIMARY KEY,
     name        VARCHAR(255)
 );
 

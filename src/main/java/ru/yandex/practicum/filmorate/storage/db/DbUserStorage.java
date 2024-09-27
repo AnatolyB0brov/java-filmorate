@@ -18,7 +18,7 @@ import java.util.Optional;
 @Component
 public class DbUserStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
-    private final String SELECT_USERS = "SELECT * FROM users ";
+    private static final String SELECT_USERS = "SELECT * FROM users ";
 
     public DbUserStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
