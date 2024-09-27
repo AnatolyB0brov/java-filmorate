@@ -3,7 +3,7 @@ Template repository for Filmorate project.
 
 ## Схема базы данных
 
-![Схема базы данных проекта Filmorate](/images/diagram.jpg)
+![Схема базы данных проекта Filmorate](/images/Diagram.jpg)
 
 ### films
 - Информация о фильмах
