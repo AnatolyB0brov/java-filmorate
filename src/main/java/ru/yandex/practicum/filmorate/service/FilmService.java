@@ -4,14 +4,16 @@ import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.storage.*;
+import ru.yandex.practicum.filmorate.storage.db.DbFilmStorage;
+import ru.yandex.practicum.filmorate.storage.db.DbGenreStorage;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -23,6 +25,8 @@ public class FilmService {
     private final LikeStorage likeStorage;
     private final RatingStorage ratingStorage;
     private final GenreStorage genreStorage;
+    private final DbFilmStorage dbFilmStorage;
+    private final DbGenreStorage dbGenreStorage;
 
     public List<Film> getFilms() {
         try {
@@ -34,28 +38,23 @@ public class FilmService {
     }
 
     public Film createFilm(Film film) {
-        Optional<Rating> ratingOptional = ratingStorage.getRatingById(film.getMpa().getId());
-        if (ratingOptional.isEmpty()) {
-            throw new WrongParameterException("Не найден рейтинг с id = " + film.getMpa().getId());
-        }
-        for (Genre genre : film.getGenres()) {
-            Optional<Genre> optionalGenre = genreStorage.getGenreById(genre.getId());
-            if (optionalGenre.isEmpty()) {
-                throw new WrongParameterException("Не найден жанр c id = " + genre.getId());
-            }
+        ratingStorage.getRatingById(film.getMpa().getId())
+                .orElseThrow(() -> new WrongParameterException("Не найден рейтинг с id = " + film.getMpa().getId()));
+        List<Long> notExistGenresId = dbGenreStorage.getNotExistIdsFromList(film.getGenres()
+                .stream().map(Genre::getId).toList());
+        if (!CollectionUtils.isEmpty(notExistGenresId)) {
+            throw new WrongParameterException("Не найдены жанры c id = " + notExistGenresId);
         }
         log.debug("Создание фильма: {}", film);
         return filmStorage.createFilm(film);
     }
 
     public Film updateFilm(Film film) {
-        Optional<Film> optionalFilm = filmStorage.getFilmById(film.getId());
-        if (optionalFilm.isPresent()) {
-            log.debug("Обновление фильма: {}", film);
-            return filmStorage.updateFilm(film);
-        } else {
-            throw new FilmNotFoundException("Фильм с id = " + film.getId() + " не найден");
-        }
+        filmStorage.getFilmById(film.getId())
+                .orElseThrow(() -> new FilmNotFoundException("Фильм с id = " + film.getId() + " не найден"));
+        log.debug("Обновление фильма: {}", film);
+        return filmStorage.updateFilm(film);
+
     }
 
     public void setLike(long filmId, long userId) {

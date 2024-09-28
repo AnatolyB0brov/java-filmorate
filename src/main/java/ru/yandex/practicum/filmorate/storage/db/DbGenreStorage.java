@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,5 +43,15 @@ public class DbGenreStorage implements GenreStorage {
                 "WHERE film_id = ?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> new Genre(rs.getInt("genre_id"),
                 rs.getString("genre_name")), filmId).stream().toList();
+    }
+
+    @Override
+    public List<Long> getNotExistIdsFromList(List<Long> ids) {
+        String inSql = String.join(",", Collections.nCopies(ids.size(), "(?)"));
+        String sql = String.format("SELECT id " +
+                "FROM (VALUES%s) V(id) EXCEPT " +
+                "SELECT id " +
+                "FROM genres", inSql);
+        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("id"), ids.toArray());
     }
 }

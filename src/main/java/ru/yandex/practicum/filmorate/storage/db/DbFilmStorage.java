@@ -97,7 +97,7 @@ public class DbFilmStorage implements FilmStorage {
         String sql = "LEFT JOIN likes ON f.id = likes.film_id " +
                 "GROUP BY f.id " +
                 "ORDER BY COUNT(likes.film_id) DESC " +
-                "LIMIT ?";
+                "FETCH NEXT ? ROWS ONLY";
         return jdbcTemplate.query(SELECT_FILMS + sql, (rs, rowNum) -> getFilmFromResultSet(rs), limit);
     }
 

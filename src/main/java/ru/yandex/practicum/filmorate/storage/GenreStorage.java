@@ -11,4 +11,6 @@ public interface GenreStorage {
     Optional<Genre> getGenreById(long genreId);
 
     List<Genre> getGenresByFilmId(long filmId);
+
+    List<Long> getNotExistIdsFromList(List<Long> ids);
 }
