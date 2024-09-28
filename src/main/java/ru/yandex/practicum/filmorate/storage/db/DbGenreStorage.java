@@ -3,9 +3,11 @@ package ru.yandex.practicum.filmorate.storage.db;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +49,9 @@ public class DbGenreStorage implements GenreStorage {
 
     @Override
     public List<Long> getNotExistIdsFromList(List<Long> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return new ArrayList<>();
+        }
         String inSql = String.join(",", Collections.nCopies(ids.size(), "(?)"));
         String sql = String.format("SELECT id " +
                 "FROM (VALUES%s) V(id) EXCEPT " +

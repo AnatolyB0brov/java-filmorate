@@ -40,12 +40,10 @@ public class FilmService {
     public Film createFilm(Film film) {
         ratingStorage.getRatingById(film.getMpa().getId())
                 .orElseThrow(() -> new WrongParameterException("Не найден рейтинг с id = " + film.getMpa().getId()));
-        if (film.getGenres() != null) {
-            List<Long> notExistGenresId = dbGenreStorage.getNotExistIdsFromList(film.getGenres()
-                    .stream().map(Genre::getId).toList());
-            if (!CollectionUtils.isEmpty(notExistGenresId)) {
-                throw new WrongParameterException("Не найдены жанры c id = " + notExistGenresId);
-            }
+        List<Long> notExistGenresId = dbGenreStorage.getNotExistIdsFromList(film.getGenres()
+                .stream().map(Genre::getId).toList());
+        if (!CollectionUtils.isEmpty(notExistGenresId)) {
+            throw new WrongParameterException("Не найдены жанры c id = " + notExistGenresId);
         }
         log.debug("Создание фильма: {}", film);
         return filmStorage.createFilm(film);
