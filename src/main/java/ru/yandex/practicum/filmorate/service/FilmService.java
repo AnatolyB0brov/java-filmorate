@@ -1,80 +1,114 @@
 package ru.yandex.practicum.filmorate.service;
 
+import jakarta.validation.ValidationException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
+import org.springframework.util.CollectionUtils;
+import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
-import ru.yandex.practicum.filmorate.utils.ServicesUtils;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Rating;
+import ru.yandex.practicum.filmorate.storage.*;
+import ru.yandex.practicum.filmorate.storage.db.DbFilmStorage;
+import ru.yandex.practicum.filmorate.storage.db.DbGenreStorage;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FilmService {
 
     private final FilmStorage filmStorage;
-
     private final UserStorage userStorage;
-
-    private final Comparator<Film> comparator = Comparator.comparing(obj -> obj.getLikes().size());
-
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
-    }
+    private final LikeStorage likeStorage;
+    private final RatingStorage ratingStorage;
+    private final GenreStorage genreStorage;
+    private final DbFilmStorage dbFilmStorage;
+    private final DbGenreStorage dbGenreStorage;
 
     public List<Film> getFilms() {
+        try {
+            return filmStorage.getFilms();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return filmStorage.getFilms();
     }
 
     public Film createFilm(Film film) {
+        ratingStorage.getRatingById(film.getMpa().getId())
+                .orElseThrow(() -> new WrongParameterException("Не найден рейтинг с id = " + film.getMpa().getId()));
+        List<Long> notExistGenresId = dbGenreStorage.getNotExistIdsFromList(film.getGenres()
+                .stream().map(Genre::getId).toList());
+        if (!CollectionUtils.isEmpty(notExistGenresId)) {
+            throw new WrongParameterException("Не найдены жанры c id = " + notExistGenresId);
+        }
+        log.debug("Создание фильма: {}", film);
         return filmStorage.createFilm(film);
     }
 
     public Film updateFilm(Film film) {
+        filmStorage.getFilmById(film.getId())
+                .orElseThrow(() -> new FilmNotFoundException("Фильм с id = " + film.getId() + " не найден"));
+        log.debug("Обновление фильма: {}", film);
         return filmStorage.updateFilm(film);
+
     }
 
     public void setLike(long filmId, long userId) {
-        Film film = getFilmById(filmId);
-        User user = ServicesUtils.getUserByIdOrElseThrow(userStorage, userId);
-        Set<Long> likes = film.getLikes();
-        if (!likes.contains(user.getId())) {
-            likes.add(user.getId());
-            film.setLikes(likes);
-            log.info("Пользователь {} поставил лайк фильму {}", filmId, userId);
-            filmStorage.updateFilm(film);
+        if (filmStorage.getFilmById(filmId).isEmpty()) {
+            throw new FilmNotFoundException("Фильм с id = " + filmId + " не найден");
         }
+        if (userStorage.getUserById(userId).isEmpty()) {
+            throw new UserNotFoundException("Пользователь с id = " + userId + " не найден");
+        }
+        log.info("Пользователь {} поставил лайк фильму {}", filmId, userId);
+        likeStorage.setLike(filmId, userId);
     }
 
     public void deleteLike(long filmId, long userId) {
-        Film film = getFilmById(filmId);
-        User user = ServicesUtils.getUserByIdOrElseThrow(userStorage, userId);
-        Set<Long> likes = film.getLikes();
-        if (likes.remove(user.getId())) {
-            film.setLikes(likes);
-            log.info("Пользователь {} убрал лайк фильму {}", userId, filmId);
-            filmStorage.updateFilm(film);
+        if (filmStorage.getFilmById(filmId).isEmpty()) {
+            throw new FilmNotFoundException("Фильм с id = " + filmId + " не найден");
         }
+        if (userStorage.getUserById(userId).isEmpty()) {
+            throw new UserNotFoundException("Пользователь с id = " + filmId + " не найден");
+        }
+        log.info("Пользователь {} убрал лайк фильму {}", userId, filmId);
+        likeStorage.deleteLike(filmId, userId);
     }
 
     public List<Film> getMostPopularFilms(int limit) {
-        List<Film> films = filmStorage.getFilms();
-        films.sort(comparator);
-        films = films.reversed();
-        if (films.size() > limit) {
-            return films.stream().limit(limit).toList();
+        if (limit <= 0) {
+            throw new ValidationException("Лимит выгрузки должен быть больше 0");
         }
-        return films;
+        return filmStorage.getMostPopularFilms(limit);
+    }
+
+    public List<Genre> getGenres() {
+        return genreStorage.getGenres();
+    }
+
+    public Genre getGenreById(int genreId) {
+        return genreStorage.getGenreById(genreId)
+                .orElseThrow(() -> new GenreNotFoundException("Жанр с id = " + genreId + " не найден"));
+    }
+
+    public List<Rating> getRatings() {
+        return ratingStorage.getRatings();
+    }
+
+    public Rating getRatingById(int ratingId) {
+        return ratingStorage.getRatingById(ratingId)
+                .orElseThrow(() -> new RatingNotFoundException("Рейтинг с id = " + ratingId + " не найден"));
     }
 
     public Film getFilmById(long filmId) {
-        return filmStorage.getFilmById(filmId)
+        Film film = filmStorage.getFilmById(filmId)
                 .orElseThrow(() -> new FilmNotFoundException("Фильм с id = " + filmId + " не найден"));
+        List<Genre> genres = genreStorage.getGenresByFilmId(film.getId());
+        film.setGenres(genres);
+        return film;
     }
 }

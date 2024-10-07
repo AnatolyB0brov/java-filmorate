@@ -37,12 +37,17 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void removeLike(@PathVariable int id, @PathVariable int userId) {
+    public void deleteLike(@PathVariable int id, @PathVariable int userId) {
         filmService.deleteLike(id, userId);
     }
 
     @GetMapping("/popular")
     public List<Film> findPopular(@RequestParam(defaultValue = "10") int count) {
         return filmService.getMostPopularFilms(count);
+    }
+
+    @GetMapping("/{id}")
+    public Film findById(@PathVariable int id) {
+        return filmService.getFilmById(id);
     }
 }

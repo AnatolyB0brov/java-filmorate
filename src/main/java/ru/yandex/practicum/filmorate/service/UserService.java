@@ -2,23 +2,23 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
+import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
-import ru.yandex.practicum.filmorate.utils.ServicesUtils;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Slf4j
 @Service
 public class UserService {
 
     private final UserStorage userStorage;
+    private final FriendStorage friendStorage;
 
-    public UserService(UserStorage userStorage) {
+    public UserService(UserStorage userStorage, FriendStorage friendStorage) {
         this.userStorage = userStorage;
+        this.friendStorage = friendStorage;
     }
 
     public List<User> getUsers() {
@@ -26,33 +26,29 @@ public class UserService {
     }
 
     public User createUser(User user) {
+        ifEmptyNameSetLogin(user);
         return userStorage.createUser(user);
     }
 
     public User updateUser(User user) {
+        User dbUser = getUserById(user.getId());
+        if (dbUser == null) {
+            throw new UserNotFoundException("Пользователь с id = " + user.getId() + " не найден");
+        }
         return userStorage.updateUser(user);
     }
 
     public void addFriend(long firstUserId, long secondUserId) {
-        User firstUser = getUserById(firstUserId);
-        User secondUser = getUserById(secondUserId);
-        Set<Long> firstUsersFriendsId = firstUser.getFriends();
-        Set<Long> secondUsersFriendsId = secondUser.getFriends();
-        firstUsersFriendsId.add(secondUser.getId());
-        secondUsersFriendsId.add(firstUser.getId());
-        log.info("Добавление друга {} пользователю {}", secondUserId, firstUserId);
+        User firstUser = getUserById(firstUserId);//Проверяем наличие пользователя
+        User secondUser = getUserById(secondUserId);//Проверяем наличие пользователя
+        friendStorage.addFriend(firstUserId, secondUserId);
     }
 
     public void deleteFriend(long firstUserId, long secondUserId) {
         User firstUser = getUserById(firstUserId);
         User secondUser = getUserById(secondUserId);
-        Set<Long> firstUsersFriendsId = firstUser.getFriends();
-        Set<Long> secondUsersFriendsId = secondUser.getFriends();
-        if (firstUsersFriendsId.contains(secondUser.getId())) {
-            firstUsersFriendsId.remove(secondUser.getId());
-            secondUsersFriendsId.remove(firstUser.getId());
-            log.info("Удаление друга {} пользователю {}", secondUserId, firstUserId);
-        }
+        friendStorage.deleteFriend(firstUserId, secondUserId);
+        log.info("Удаление друга {} пользователю {}", secondUserId, firstUserId);
     }
 
     public List<User> getCommonFriends(long firstUserId, long secondUserId) {
@@ -63,18 +59,18 @@ public class UserService {
     }
 
     public User getUserById(long userId) {
-        return ServicesUtils.getUserByIdOrElseThrow(userStorage, userId);
+        return userStorage.getUserById(userId)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + userId + " не найден"));
     }
 
     public List<User> getUserFriends(long userId) {
-        User user = getUserById(userId);
-        List<User> friends = new ArrayList<>();
-        Set<Long> userFriendsIds = user.getFriends();
-        if (!CollectionUtils.isEmpty(userFriendsIds)) {
-            for (long userFriendId : userFriendsIds) {
-                friends.add(getUserById(userFriendId));
-            }
+        User user = getUserById(userId);//Проверяем наличие пользователя
+        return friendStorage.getUserFriends(userId);
+    }
+
+    private void ifEmptyNameSetLogin(User user) {
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
         }
-        return friends;
     }
 }
